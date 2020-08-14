@@ -27,3 +27,23 @@ Primeiro meetup da Prix, com web scraping na prática
  - **p-map**: troca cada item de uma lista assincronamente 
  - **bull**: gerencia filas e concorrência
  - **is-online**: verifica se está online
+ - **minimist**: interpreta opções da linha de comando
+ - **ioredis**: segura dados em memória
+
+## 4. Técnicas
+
+### Faça uma interface por linha de comando
+
+### Limite a concorrência e crie filas
+
+### Veja em slow motion
+
+### Use o Chrome Devtools
+
+### Troque o User Agent
+
+### Armazene as falhas
+
+### Pause o processo se a Internet cair
+
+### 
