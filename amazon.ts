@@ -1,28 +1,42 @@
 import puppeteer from 'puppeteer'
-import fse from 'fs-extra'
 import pMap from 'p-map'
-
-const filePath = 'news.csv'
-
-async function append(title: string) {
-  await fse.appendFile(filePath, `${title}\n`)
-}
+import { initialDelete, append } from './csv'
+import { Book } from './book'
 
 async function main() {
-  await fse.unlink(filePath)
+  await initialDelete()
+
   const browser = await puppeteer.launch({
     headless: false,
     devtools: true,
   })
   const page = await browser.newPage()
   await page.goto('https://www.amazon.com.br/s?i=stripbooks&s=price-asc-rank&page=1')
-  const titles = await page.evaluate(() => {
-    const titleElements = Array.from(document.querySelectorAll('h2 a'))
-    return titleElements.map(titleElement => titleElement.textContent.trim())
-  })
-  console.table(titles)
+  const books: Book[] = await page.evaluate(() => {
+    const infoLineRegExp = /por\s([a-zA-Z\u00C0-\u00ff,\.\s]+)\s?\|\s?([0-9a-z\s]+)/
 
-  await pMap(titles, append, {
+    function extractBookContent(bookElement: Element) {
+      const title = bookElement.querySelector('h2').textContent.trim()
+      const infoLine = bookElement.querySelector('h2 + div')?.textContent.trim() ?? ''
+
+      const [, rawAuthor, publishedAt] = infoLineRegExp.exec(infoLine) ?? []
+
+      const author = rawAuthor?.trim()
+
+      return {
+        title,
+        author,
+        publishedAt,
+      }
+    }
+
+    const bookElements = Array.from(document.querySelectorAll('[data-asin]:not([data-asin=""])'))
+    return bookElements.map(extractBookContent)
+  })
+
+  console.table(books)
+
+  await pMap(books, append, {
     concurrency: 4,
   })
 
