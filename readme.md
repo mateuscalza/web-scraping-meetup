@@ -1,6 +1,6 @@
 # Web Scraping Meetup
 
-Primeiro meetup da Prix, com web scraping na prática
+Primeiro meetup da Prix: web scraping na prática com o case da extração de livros usando Typescript e Puppeteer.
 
 ## 1. Conceitos similares
 
