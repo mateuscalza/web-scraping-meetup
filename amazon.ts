@@ -2,6 +2,7 @@ import puppeteer from 'puppeteer'
 import pMap from 'p-map'
 import { initialDelete, append } from './csv'
 import { Book } from './book'
+import filterRequests from './filterRequests'
 
 async function main() {
   await initialDelete()
@@ -10,7 +11,10 @@ async function main() {
     headless: false,
     devtools: true,
   })
+
   const page = await browser.newPage()
+  const startedAt = +new Date()
+  await filterRequests(page, ['document'])
   await page.goto('https://www.amazon.com.br/s?i=stripbooks&s=price-asc-rank&page=1')
   const books: Book[] = await page.evaluate(() => {
     const infoLineRegExp = /por\s([a-zA-Z\u00C0-\u00ff,\.\s]+)\s?\|\s?([0-9a-z\s]+)/
@@ -33,6 +37,7 @@ async function main() {
     const bookElements = Array.from(document.querySelectorAll('[data-asin]:not([data-asin=""])'))
     return bookElements.map(extractBookContent)
   })
+  console.log(((+new Date() - startedAt) / 1000).toFixed(3), 'seconds')
 
   console.table(books)
 
@@ -40,6 +45,6 @@ async function main() {
     concurrency: 4,
   })
 
-  await browser.close()
+  // await browser.close()
 }
 main().catch(error => console.error(error))
