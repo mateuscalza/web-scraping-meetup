@@ -32,18 +32,11 @@ Primeiro meetup da Prix, com web scraping na prática
 
 ## 4. Técnicas
 
-### Faça uma interface por linha de comando
-
-### Limite a concorrência e crie filas
-
-### Veja em slow motion
-
-### Use o Chrome Devtools
-
-### Troque o User Agent
-
-### Armazene as falhas
-
-### Pause o processo se a Internet cair
-
-### Use clusters se necessário
+- Faça uma interface por linha de comando
+- Limite a concorrência e crie filas
+- Veja em slow motion
+- Use o Chrome Devtools
+- Troque o User Agent
+- Armazene as falhas
+- Pause o processo se a Internet cair
+- Use clusters se necessário

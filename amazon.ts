@@ -15,36 +15,43 @@ async function main() {
   const page = await browser.newPage()
   const startedAt = +new Date()
   await filterRequests(page, ['document'])
-  await page.goto('https://www.amazon.com.br/s?i=stripbooks&s=price-asc-rank&page=1')
-  const books: Book[] = await page.evaluate(() => {
-    const infoLineRegExp = /por\s([a-zA-Z\u00C0-\u00ff,\.\s]+)\s?\|\s?([0-9a-z\s]+)/
 
-    function extractBookContent(bookElement: Element) {
-      const title = bookElement.querySelector('h2').textContent.trim()
-      const infoLine = bookElement.querySelector('h2 + div')?.textContent.trim() ?? ''
+  let pageNumber = 1
+  let newBooks: Book[] = []
+  do {
+    await page.goto(`https://www.amazon.com.br/s?i=stripbooks&s=price-asc-rank&page=${pageNumber}`)
+    newBooks = await page.evaluate(() => {
+      const infoLineRegExp = /por\s([a-zA-Z\u00C0-\u00ff,\.\s]+)\s?\|\s?([0-9a-z\s]+)/
 
-      const [, rawAuthor, publishedAt] = infoLineRegExp.exec(infoLine) ?? []
+      function extractBookContent(bookElement: Element) {
+        const title = bookElement.querySelector('h2').textContent.trim()
+        const infoLine = bookElement.querySelector('h2 + div')?.textContent.trim() ?? ''
 
-      const author = rawAuthor?.trim()
+        const [, rawAuthor, publishedAt] = infoLineRegExp.exec(infoLine) ?? []
 
-      return {
-        title,
-        author,
-        publishedAt,
+        const author = rawAuthor?.trim()
+
+        return {
+          title,
+          author,
+          publishedAt,
+        }
       }
-    }
 
-    const bookElements = Array.from(document.querySelectorAll('[data-asin]:not([data-asin=""])'))
-    return bookElements.map(extractBookContent)
-  })
-  console.log(((+new Date() - startedAt) / 1000).toFixed(3), 'seconds')
+      const bookElements = Array.from(document.querySelectorAll('[data-asin]:not([data-asin=""])'))
+      return bookElements.map(extractBookContent)
+    })
 
-  console.table(books)
+    await pMap(newBooks, append, {
+      concurrency: 4,
+    })
 
-  await pMap(books, append, {
-    concurrency: 4,
-  })
+    console.table(newBooks)
+    console.log(((+new Date() - startedAt) / 1000).toFixed(3), 'seconds')
 
-  // await browser.close()
+    pageNumber++
+  } while (newBooks.length)
+
+  await browser.close()
 }
 main().catch(error => console.error(error))
